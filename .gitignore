@@ -1,3 +1,8 @@
+.env
+
+# sample data folder
+sample_images/
+
 # .vscode folder
 .vscode/
 

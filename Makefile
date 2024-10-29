@@ -7,4 +7,4 @@ create_conda_env:
 	conda env create file=env.yml
 
 run_app:
-	streamlit run src/app/Newsfeed.py 
+	streamlit run src/app/Home.py 

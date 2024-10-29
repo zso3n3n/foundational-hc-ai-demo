@@ -339,8 +339,7 @@ def plot_segmentation_masks(
         ax[i + 1].set_aspect(aspect_ratio)
 
     plt.tight_layout()
-    plt.show()
-
+    return fig
 
 # Combined inference function to handle both NIFTI and RGB inputs
 def run_inference(
@@ -436,7 +435,7 @@ def run_inference(
         response = urllib.request.urlopen(req)
         result = response.read()
         result_list = json.loads(result)
-
+        
         # Decode image features from response
         image_features_str = result_list[0]["image_features"]
         text_features = result_list[0]["text_features"]
@@ -450,10 +449,6 @@ def run_inference(
         print(error.read().decode("utf8", "ignore"))
 
     return sample_image_arr, image_features, text_features
-
-
-from processing_utils import get_instances
-import cv2
 
 
 def plot_instance_segmentation_masks(
