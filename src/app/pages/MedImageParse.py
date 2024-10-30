@@ -10,7 +10,6 @@ load_dotenv(find_dotenv(), override = True)
 
 # Initialize variables
 uploaded_image = None
-image_path = 'tmp/'
 st.session_state.results = {}
 st.session_state.results['status'] = False
 
@@ -19,17 +18,6 @@ inference_config = {
     "api_key": os.getenv("MIP_API_KEY"),
     "azureml_model_deployment": os.getenv("MIP_DEPLOY_NAME"),
 }
-
-def infer(image_path, text_prompt):
-    image, masks, text_features = mip_utils.run_inference(
-        inference_config, image_path, text_prompt
-    )
-
-    st.session_state.results['status'] = True
-    st.session_state.results['image'] = image
-    st.session_state.results['masks'] = masks
-    st.session_state.results['text_features'] = text_features
-    return  
 
 #########################
 #### START APP CODE #####
@@ -58,23 +46,24 @@ with tab1:
         prompt = st.text_input("What would you like to identify?", help="Use format 'object 1 & object 2 & ... & object X' for multi-segmentation")
         get_results = st.button("Submit")
         if get_results:
-            infer(temp_path, prompt)
+            image, masks, text_features = mip_utils.run_inference(inference_config, temp_path, prompt)
+            st.session_state.results['status'] = True
+            st.session_state.results['image'] = image
+            st.session_state.results['masks'] = masks
+            st.session_state.results['text_features'] = text_features
 
     else:
         header.subheader("⬅️ Upload an Image to Get Started...")
 
-
-
     if st.session_state.results['status']:
         fig = mip_utils.plot_segmentation_masks(st.session_state.results['image'], st.session_state.results['masks'], prompt)
-        st.pyplot(fig)
-        #for mask in st.session_state.results['masks']:
-        #   st.image(mask,use_column_width=True)
+        header.pyplot(fig)
         st.write(f"Text features: {st.session_state.results['text_features']}")
+
 
 with tab2:
     st.markdown("""
-    ## 🌐 Description  
+    ### 🌐 Description  
     Biomedical image analysis is fundamental for biomedical discovery in cell biology, pathology, radiology, and many other biomedical domains. MedImageParse is a biomedical foundation model for imaging parsing that can jointly conduct segmentation, detection, and recognition across 9 imaging modalities. Through joint learning, we can improve accuracy for individual tasks and enable novel applications such as segmenting all relevant objects in an image through a text prompt, rather than requiring users to laboriously specify the bounding box for each object.
 
     MedImageParse is broadly applicable, performing image segmentation across 9 imaging modalities.
@@ -88,11 +77,11 @@ with tab2:
     It is broadly applicable to all major biomedical image modalities, which may pave a future path for efficient and accurate image-based biomedical discovery when built upon and integrated into an application.
     
     ---         
-    ## 🏗️ Model Architecture
+    ### 🏗️ Model Architecture
     MedImageParse is built upon a transformer-based architecture, optimized for processing large biomedical corpora. Leveraging multi-head attention mechanisms, it excels at identifying and understanding biomedical terminology, as well as extracting contextually relevant information from dense scientific texts. The model is pre-trained on vast biomedical datasets, allowing it to generalize across various biomedical domains with high accuracy.
     
     ---            
-    ## 🗒️ More Details
+    ### 🗒️ More Details
     - For more details regarding evaluation results, ethical considerations and limitations, training information, and fairness evaluations please refer to the [MedImageParse Paper](https://arxiv.org/abs/2405.12971)
     and the cooresponding [GitHub repository](https://microsoft.github.io/BiomedParse/assets/BiomedParse_arxiv.pdf).  
     - Microsoft's Responsible AI Principles and approach available [here](https://www.microsoft.com/en-us/ai/principles-and-approach/)
