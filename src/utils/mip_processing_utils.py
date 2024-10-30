@@ -9,7 +9,6 @@ from skimage import transform, measure
 import urllib.request
 import json
 import base64
-import cv2
 
 
 """
