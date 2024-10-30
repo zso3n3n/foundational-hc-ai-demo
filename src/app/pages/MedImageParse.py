@@ -63,7 +63,7 @@ with tab1:
 
 with tab2:
     st.markdown("""
-    ### 🌐 Description  
+    ### 🌐 Overview  
     Biomedical image analysis is fundamental for biomedical discovery in cell biology, pathology, radiology, and many other biomedical domains. MedImageParse is a biomedical foundation model for imaging parsing that can jointly conduct segmentation, detection, and recognition across 9 imaging modalities. Through joint learning, we can improve accuracy for individual tasks and enable novel applications such as segmenting all relevant objects in an image through a text prompt, rather than requiring users to laboriously specify the bounding box for each object.
 
     MedImageParse is broadly applicable, performing image segmentation across 9 imaging modalities.
