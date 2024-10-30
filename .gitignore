@@ -3,6 +3,10 @@
 # sample data folder
 sample_images/
 
+
+# pychache
+*/__pycache__/
+
 # .vscode folder
 .vscode/
 

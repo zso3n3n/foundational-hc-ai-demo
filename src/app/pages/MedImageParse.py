@@ -13,13 +13,19 @@ uploaded_image = None
 image_path = 'tmp/'
 st.session_state.results = {}
 st.session_state.results['status'] = False
+site = None
+slice_idx = None
+hw_index = None
+channel_idx = None
 
+# Setup config
 inference_config = {
     "endpoint": os.getenv("MIP_ENDPOINT"),
     "api_key": os.getenv("MIP_API_KEY"),
     "azureml_model_deployment": os.getenv("MIP_DEPLOY_NAME"),
 }
 
+# Helper functiont to run inference and set results
 def infer(image_path, text_prompt):
     image, masks, text_features = mip_utils.run_inference(
         inference_config, image_path, text_prompt
@@ -31,39 +37,52 @@ def infer(image_path, text_prompt):
     st.session_state.results['text_features'] = text_features
     return  
 
-
+#########################
 #### START APP CODE #####
+#########################
+
+# Sidebar 
 
 with st.sidebar as sb:
     st.write("Welcome to MedImageParse")
-    # TODO add support for nii and dcm files
-    uploaded_image = st.file_uploader("Upload Image", type=["png","jpg","jpeg"])
+    
+    uploaded_image = st.file_uploader("Upload Image", type=["png","jpg","jpeg","nii","dcm","nii.gz"])
+    suffix = uploaded_image.name.split('.')[-1]
+    if suffix == 'gz':
+        suffix = uploaded_image.name.split('.')[-2] + '.' + suffix
 
-# Setup column page layout
+    if uploaded_image is not None and suffix == 'dcm':
+        ct = st.radio("Is this a CT scane image?", ("Yes", "No"), index = 1)
+    elif uploaded_image is not None and (suffix == 'nii' or suffix == 'nii.gz'):
+        slice_idx = st.slider("Select Slice", 0, 100, 0)
+        hw_index = st.text_input("Enter Height and Width index", "(0,1)")
+        ct = st.radio("Is this a CT scane image?", ("Yes", "No"), index = 1)
+    
+    if ct == "Yes":
+        site = st.radio("What is the CT site?", ("Abdomen", "Lung", "Pelvis", "Liver", "Colon", "Pancreas")).lower()
 
+# Main Page
 
 if uploaded_image is not None:
-    suffix = uploaded_image.name.split('.')[-1]
     with NamedTemporaryFile(delete=False, suffix = f".{suffix}") as f:
-        f.write(uploaded_image.getbuffer())
+        f.write(uploaded_image.getvalue())
         temp_path = f.name
+    
+    image_array = mip_utils.display_image(temp_path, ct=="Yes", slice_idx, hw_index, channel_idx, site)
+    st.image(image_array, use_column_width=True)
+    # st.image(temp_path, use_column_width=True)
 
-    st.image(Image.open(temp_path), caption="Uploaded Image", use_column_width=True)
+    prompt = st.text_input("Enter a prompt")
+    get_results = st.button("Submit")
+    if get_results:
+        infer(temp_path, prompt)
 
 else:
     st.write("Upload an Image to get started <--")
 
-
-prompt = st.text_input("Enter a prompt")
-get_results = st.button("Submit")
-if get_results:
-    infer(temp_path, prompt)
-
-
+# Display Reusults
 if st.session_state.results['status']:
     st.write("Results")
     fig = mip_utils.plot_segmentation_masks(st.session_state.results['image'], st.session_state.results['masks'], prompt)
     st.pyplot(fig)
-    #for mask in st.session_state.results['masks']:
-     #   st.image(mask,use_column_width=True)
     st.write(f"Text features: {st.session_state.results['text_features']}")
