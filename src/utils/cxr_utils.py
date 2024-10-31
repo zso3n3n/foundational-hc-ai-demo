@@ -11,7 +11,7 @@ def read_image(image_path):
         return f.read()
 
 
-def score_image(frontal_path, lateral_path, indication, technique, comparison):
+def score_image(inference_config, frontal_path, lateral_path, indication="", technique="", comparison="None"):
     """Scores frontal and lateral images using the deployed model."""
 
     input_data = {
@@ -38,9 +38,10 @@ def score_image(frontal_path, lateral_path, indication, technique, comparison):
     with open(request_file_name, "w") as request_file:
         json.dump(data, request_file)
 
+    # TODO change to requests lib
     response = ml_client.online_endpoints.invoke(
-        endpoint_name=endpoint_name,
-        deployment_name=deployment_name,
+        endpoint_name=inference_config["endpoint"],
+        deployment_name=inference_config["azureml_model_deployment"],
         request_file=request_file_name,
     )
     # Parse the response into an array

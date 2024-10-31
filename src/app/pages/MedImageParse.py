@@ -26,11 +26,17 @@ inference_config = {
 # SIDEBAR
 with st.sidebar as sb:
     # TODO add support for nii and dcm files
-    uploaded_image = st.file_uploader("Upload Image", type=["png","jpg","jpeg"])
+    st.warning("Support for NIFTI and DICOM images coming soon")
+    uploaded_image = st.file_uploader('Upload Image:', type=["png","jpg","jpeg"])
+    st.markdown("""
+        ### 🔎 Need a Sample Image?
+        [**MedPix**](https://medpix.nlm.nih.gov/advancedsearch) - _National Library of Medicine_   
+        
+    """)
 
 # MAIN PAGE
 st.title("Microsoft MedImageParse")
-st.markdown("_\"A biomedical foundation model for image parsing of everything, everywhere, all at once.\"_")
+st.markdown("###### _\"A biomedical foundation model for image parsing of everything, everywhere, all at once.\"_")
 
 tab1, tab2 = st.tabs(["✅ Test the Model", "📖 Learn More"])
 
@@ -46,19 +52,40 @@ with tab1:
         prompt = st.text_input("What would you like to identify?", help="Use format 'object 1 & object 2 & ... & object X' for multi-segmentation")
         get_results = st.button("Submit")
         if get_results:
-            image, masks, text_features = mip_utils.run_inference(inference_config, temp_path, prompt)
-            st.session_state.results['status'] = True
-            st.session_state.results['image'] = image
-            st.session_state.results['masks'] = masks
-            st.session_state.results['text_features'] = text_features
+            with st.spinner("Processing..."):
+                image, masks, text_features = mip_utils.run_inference(inference_config, temp_path, prompt)
+                st.session_state.results['status'] = True
+                st.session_state.results['image'] = image
+                st.session_state.results['masks'] = masks
+                st.session_state.results['text_features'] = text_features
 
     else:
         header.subheader("⬅️ Upload an Image to Get Started...")
 
+    st.container()
+    st.markdown('---\n')
+    st.markdown("#### Supported Modalities")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("""
+                    - X-Ray
+                    - MRI
+                    - CT
+                    - Endoscope
+                   
+                    """)
+    with col2:
+        st.markdown("""
+                    - Pathology
+                    - Ultrasound
+                    - Fundus
+                    - Dermoscopy
+                    """)
+
     if st.session_state.results['status']:
         fig = mip_utils.plot_segmentation_masks(st.session_state.results['image'], st.session_state.results['masks'], prompt)
         header.pyplot(fig)
-        st.write(f"Text features: {st.session_state.results['text_features']}")
+        # st.write(f"Text features: {st.session_state.results['text_features']}")
 
 
 with tab2:

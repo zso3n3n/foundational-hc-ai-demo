@@ -16,21 +16,21 @@ st.markdown(
 st.markdown(
     '''
     --- 
-    #### ⚕️ Available Models:  
+    ### ⚕️ Available Models:  
       
-    **MedImageParse**:    
+    #### **MedImageParse**:    
     A biomedical foundation model for imaging parsing that can jointly conduct segmentation, detection, and recognition across 9 imaging modalities. Through joint learning, we can improve accuracy for individual tasks and enable novel applications such as segmenting all relevant objects in an image through a text prompt, rather than requiring users to laboriously specify the bounding box for each object.   
     [Read More Here](https://arxiv.org/abs/2405.12971)
 
-    **CxRReportGen**: (_Coming Soon_)    
+    #### **CxRReportGen**: (_Coming Soon_)    
     This model is built to help an application interpret complex medical imaging studies of chest X-rays. When built upon and integrated into an application, CXRReportGen may help developers generate comprehensive and structured radiology reports, with visual grounding represented by bounding boxes on the images.   
     [Read More Here](https://arxiv.org/abs/2406.04449)
 
-    **PRISM**: (_Coming Soon_)   
+    #### **PRISM**: (_Coming Soon_)   
     A multi-modal generative foundation model for slide-level analysis of H&E-stained histopathology images. Utilizing Virchow tile embeddings and clinical report texts for pre-training, PRISM combines these embeddings into a single slide embedding and generates a text-based diagnostic report. These can be used for tasks such as cancer detection, sub-typing, and biomarker identification.   
     [Read More Here](https://paige.ai/paige-introduces-prism-a-slide-level-foundation-model-to-empower-the-next-era-of-pathology-cancer-treatment/)
 
-    **GigaPath**: (_Coming Soon_)    
+    #### **GigaPath**: (_Coming Soon_)    
     '''
 )
 

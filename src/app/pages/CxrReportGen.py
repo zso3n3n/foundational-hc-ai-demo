@@ -29,10 +29,15 @@ inference_config = {
 with st.sidebar as sb:
     frontal_image = st.file_uploader("Upload Frontal Image (Required)", type=["png","jpg","jpeg"])
     lateral_image = st.file_uploader("Upload Lateral Image (Optional)", type=["png","jpg","jpeg"])
+    st.markdown("""
+        ### 🔎 Need a Sample Image?
+        [**MedPix**](https://medpix.nlm.nih.gov/advancedsearch) - _National Library of Medicine_   
+        
+    """)
 
 # MAIN PAGE
 st.title("Microsoft CxRReportGen")
-st.markdown("_\"Grounded report generation with localized findings for x-ray images.\"_")
+st.markdown("##### _\"Grounded report generation with localized findings for x-ray images.\"_")
 
 tab1, tab2 = st.tabs(["✅ Test the Model", "📖 Learn More"])
 
@@ -51,13 +56,17 @@ with tab1:
     else:
         header.subheader("⬅️ Upload an Image to Get Started...")
 
-    if generate_results:
-        # TODO: Inference
-        pass
-
     if st.session_state.results['status']:
-        # TODO
-        st.write(f"Display Results here")
+        header.pyplot(cxr_utils.show_image_with_bbox(frontal_image, st.session_state.results['findings'], lateral_image))
+        st.write(f"**Findings:** {st.session_state.results['findings']}")
+
+    if generate_results:
+        with st.spinner():
+            findings = cxr_utils.score_image(frontal_image, lateral_image, "", "", "None")
+            st.session_state.results['status'] = True
+            st.session_state.results['findings'] = findings
+
+    
 
 with tab2:
     st.markdown("""
