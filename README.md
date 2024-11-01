@@ -14,7 +14,7 @@ The Azure Model Catalog contains a collection of cutting-edge multimodal medical
 This repository serves as an easy to use demo for the models below. **Bring your own image(s)** and explore the models via an easy to use UI. 
 
 <p align="center">
-    <img src="documentation_images/mip-screenshot.png">
+    <img src="documentation_images/cxr-screenshot.png">
 </p>
 
 ## ⚕️ Available Models  

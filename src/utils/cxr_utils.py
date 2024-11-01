@@ -12,7 +12,7 @@ def read_image(image_path):
         return f.read()
 
 
-def score_image(inference_config, frontal_path, lateral_path, indication="", technique="", comparison="None"):
+def score_image(inference_config, frontal_path, lateral_path=None, indication="", technique="", comparison="None"):
     """Scores frontal and lateral images using the deployed model."""
 
     # Prepare the request payload
@@ -25,13 +25,21 @@ def score_image(inference_config, frontal_path, lateral_path, indication="", tec
     if deployment:
         headers["azureml-model-deployment"] = deployment
     
-    input_data = {
-        "frontal_image": base64.encodebytes(read_image(frontal_path)).decode("utf-8"),
-        "lateral_image": base64.encodebytes(read_image(lateral_path)).decode("utf-8"),
-        "indication": indication,
-        "technique": technique,
-        "comparison": comparison,
-    }
+    if lateral_path:
+        input_data = {
+            "frontal_image": base64.encodebytes(read_image(frontal_path)).decode("utf-8"),
+            "lateral_image": base64.encodebytes(read_image(lateral_path)).decode("utf-8"),
+            "indication": indication,
+            "technique": technique,
+            "comparison": comparison,
+        }
+    else:
+        input_data = {
+            "frontal_image": base64.encodebytes(read_image(frontal_path)).decode("utf-8"),
+            "indication": indication,
+            "technique": technique,
+            "comparison": comparison,
+        }
 
     data = {
         "input_data": {
