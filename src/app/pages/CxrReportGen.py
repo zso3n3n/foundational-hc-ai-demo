@@ -43,11 +43,17 @@ with st.sidebar as sb:
         lateral_image_path = save_temp_file(lateral_image)
     st.container()
     st.markdown('---')
+    st.markdown("### Additional Parameters")
+    indication = st.text_input("Indication (Optional)", value='')
+    technique = st.text_input("Technique (Optional)", value='')
+    comparison = st.text_input("Comparison (Optional)", value='')
+    st.markdown('---')
     st.markdown("""
         ### 🔎 Need a Sample Image?
         [**MedPix**](https://medpix.nlm.nih.gov/advancedsearch) - _National Library of Medicine_   
         
     """)
+    
 
 # MAIN PAGE
 st.title("Microsoft CxRReportGen")
@@ -72,7 +78,7 @@ with tab1:
     if generate_results:
         with st.spinner("Generating Report..."):
             #TODO: Make lateral optional and add in extra options
-            findings = json.loads(cxr_utils.score_image(inference_config, frontal_image_path, lateral_image_path, "", "", "None"))[0]['output']
+            findings = json.loads(cxr_utils.score_image(inference_config, frontal_image_path, lateral_image_path, indication, technique, comparison))[0]['output']
             st.session_state.results['status'] = True
             st.session_state.results['findings'] = findings
 
