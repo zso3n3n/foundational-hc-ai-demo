@@ -3,6 +3,7 @@ import base64
 from PIL import Image
 import matplotlib.pyplot as plt
 from PIL import Image
+import urllib.request
 
 
 def read_image(image_path):
@@ -14,6 +15,16 @@ def read_image(image_path):
 def score_image(inference_config, frontal_path, lateral_path, indication="", technique="", comparison="None"):
     """Scores frontal and lateral images using the deployed model."""
 
+    # Prepare the request payload
+    url = f"{inference_config['endpoint']}/score"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {inference_config['api_key']}",
+    }
+    deployment = inference_config.get("azureml_model_deployment", None)
+    if deployment:
+        headers["azureml-model-deployment"] = deployment
+    
     input_data = {
         "frontal_image": base64.encodebytes(read_image(frontal_path)).decode("utf-8"),
         "lateral_image": base64.encodebytes(read_image(lateral_path)).decode("utf-8"),
@@ -33,19 +44,17 @@ def score_image(inference_config, frontal_path, lateral_path, indication="", tec
         "params": {},
     }
 
-    # Create request json
-    request_file_name = "sample_request_data.json"
-    with open(request_file_name, "w") as request_file:
-        json.dump(data, request_file)
+    body = str.encode(json.dumps(data))
 
-    # TODO change to requests lib
-    response = ml_client.online_endpoints.invoke(
-        endpoint_name=inference_config["endpoint"],
-        deployment_name=inference_config["azureml_model_deployment"],
-        request_file=request_file_name,
-    )
-    # Parse the response into an array
-    findings = json.loads(json.loads(response)[0]["output"])
+    # Send the request and handle response
+    req = urllib.request.Request(url, body, headers)
+    try:
+        response = urllib.request.urlopen(req)
+        findings = response.read().decode("utf-8")
+        
+    except urllib.error.HTTPError as error:
+        print("The request failed with status code: " + str(error.code))
+
     return findings
 
 
@@ -84,11 +93,11 @@ def show_image_with_bbox(path_frontal, findings, path_lateral=None):
 
     if path_lateral:
         image_lateral = Image.open(path_lateral)
-        _, axes = plt.subplots(1, 2, figsize=(20, 10))
+        fig, axes = plt.subplots(1, 2, figsize=(20, 10))
         axes[0].imshow(image_frontal, cmap="gray")
         axes[1].imshow(image_lateral, cmap="gray")
     else:
-        _, axes = plt.subplots(figsize=(10, 10))
+        fig, axes = plt.subplots(figsize=(10, 10))
         axes.imshow(image_frontal, cmap="gray")
         axes = [axes]
 
@@ -128,5 +137,4 @@ def show_image_with_bbox(path_frontal, findings, path_lateral=None):
     for ax in axes:
         ax.axis("off")  # Hide the axes
 
-    plt.show()
-    print("\n".join(findings_str))
+    return fig, findings_str

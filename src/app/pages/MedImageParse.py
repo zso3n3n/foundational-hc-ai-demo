@@ -28,6 +28,8 @@ with st.sidebar as sb:
     # TODO add support for nii and dcm files
     st.warning("Support for NIFTI and DICOM images coming soon")
     uploaded_image = st.file_uploader('Upload Image:', type=["png","jpg","jpeg"])
+    st.container()
+    st.markdown('---')
     st.markdown("""
         ### 🔎 Need a Sample Image?
         [**MedPix**](https://medpix.nlm.nih.gov/advancedsearch) - _National Library of Medicine_   
