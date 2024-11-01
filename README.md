@@ -32,7 +32,8 @@ A multi-modal generative foundation model for slide-level analysis of H&E-staine
 [Read More Here](https://paige.ai/paige-introduces-prism-a-slide-level-foundation-model-to-empower-the-next-era-of-pathology-cancer-treatment/)
 
 ### **Providence GigaPath**: (_Coming Soon_)   
-  
+A whole-slide foundation model for digital pathology. A novel vision transformer architecture for pretraining gigapixel pathology slides. To scale GigaPath for slide-level learning with tens of thousands of image tiles, GigaPath adapts the newly developed LongNet5 method to digital pathology.  
+[Read More Here](https://www.nature.com/articles/s41586-024-07441-w)
   
 ## 🔧 Setup
 
