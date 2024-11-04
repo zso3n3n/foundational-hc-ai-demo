@@ -1,4 +1,4 @@
-# Foudational Healthcare AI Models
+# Foundational Healthcare AI Models
 
 The Azure Model Catalog contains a collection of cutting-edge multimodal medical imaging foundation models developed in collaboration with partners like Providence and Paige.ai. These models enable healthcare organizations to integrate and analyze diverse data types — ranging from medical imaging to genomics and clinical records. By using these advanced models as a foundation, healthcare organizations can rapidly build, fine-tune and deploy AI solutions tailored to their specific needs, all while minimizing the extensive compute and data requirements typically associated with building multimodal models from scratch.
 
