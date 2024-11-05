@@ -33,7 +33,6 @@ def save_temp_file(uploaded_image):
             ct = st.radio("Is this a CT scan? (Required)", options=["Yes", "No"], index=1)
             if ct == "Yes":
                 site = st.selectbox("Select the site of the CT scan (Required)", options=["Abdomen","Lung","Pelvis","Liver","Colon","Pancreas"]).lower()
-
             temp_file.write(mip_utils.read_dicom_bytes(uploaded_image, ct=="Yes", site))
             st.session_state.temp_path = temp_file.name
 
