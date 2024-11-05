@@ -1,5 +1,6 @@
 import streamlit as st
 import os
+import ast
 
 from dotenv import load_dotenv,find_dotenv
 from tempfile import NamedTemporaryFile
@@ -10,8 +11,10 @@ load_dotenv(find_dotenv(), override = True)
 
 # Initialize variables
 uploaded_image = None
+temp_file = None
 st.session_state.results = {}
 st.session_state.results['status'] = False
+st.session_state.temp_path = None
 
 inference_config = {
     "endpoint": os.getenv("MIP_ENDPOINT"),
@@ -19,16 +22,49 @@ inference_config = {
     "azureml_model_deployment": os.getenv("MIP_DEPLOY_NAME"),
 }
 
+def save_temp_file(uploaded_image):
+    suffix = uploaded_image.name.split('.')[-1]
+    if suffix == 'gz':
+        suffix = uploaded_image.name.split('.')[-2] + '.gz'
+
+    with NamedTemporaryFile(delete=False, suffix = f".{suffix}") as temp_file:
+        if suffix == 'dcm':
+            site = None
+            ct = st.radio("Is this a CT scan? (Required)", options=["Yes", "No"], index=1)
+            if ct == "Yes":
+                site = st.selectbox("Select the site of the CT scan (Required)", options=["Abdomen","Lung","Pelvis","Liver","Colon","Pancreas"]).lower()
+
+            temp_file.write(mip_utils.read_dicom_bytes(uploaded_image, ct=="Yes", site))
+            st.session_state.temp_path = temp_file.name
+
+        elif suffix in ['nii','nii.gz']:
+            site = None
+            is_ct = st.radio("Is this a CT scan? (Required)", options=["Yes", "No"], index=1)
+            if is_ct == "Yes":
+                site = st.selectbox("Select the site of the CT scan (Required)", options=["Abdomen","Lung","Pelvis","Liver","Colon","Pancreas"]).lower()
+            # FIXME: 
+            HW_index = ast.literal_eval(st.text_input("Enter the HW Index (Required)", value=(0,1)))
+            slice_idx = st.text_input("Enter the slice index (Required)", value="None")
+            channel_idx = st.text_input("Enter the channel index (Required)", value="None") 
+            temp_file.write(mip_utils.read_nifti_bytes(uploaded_image, is_ct, slice_idx, site, HW_index, channel_idx))
+            st.session_state.temp_path = temp_file.name
+        else:
+            temp_file.write(uploaded_image.getbuffer())
+            st.session_state.temp_path = temp_file.name
+
+    return
+
 #########################
 #### START APP CODE #####
 #########################
 
 # SIDEBAR
 with st.sidebar as sb:
-    # TODO add support for nii and dcm files
-    st.warning("Support for NIFTI and DICOM images coming soon")
-    uploaded_image = st.file_uploader('Upload Image:', type=["png","jpg","jpeg"])
+    uploaded_image = st.file_uploader('Upload Image:', type=["png","jpg","jpeg","dcm","nii","nii.gz"])
     st.container()
+    if uploaded_image:
+        save_temp_file(uploaded_image)
+
     st.markdown('---')
     st.markdown("""
         ### 🔎 Need a Sample Image?
@@ -44,12 +80,8 @@ tab1, tab2 = st.tabs(["✅ Test the Model", "📖 Learn More"])
 
 with tab1:
     header = st.empty()
-    if uploaded_image is not None:
-        suffix = uploaded_image.name.split('.')[-1]
-        with NamedTemporaryFile(delete=False, suffix = f".{suffix}") as f:
-            f.write(uploaded_image.getbuffer())
-            temp_path = f.name
-
+    if st.session_state.temp_path:
+        temp_path = st.session_state.temp_path
         header.image(Image.open(temp_path), use_column_width=True)
         prompt = st.text_input("What would you like to identify?", help="Use format 'object 1 & object 2 & ... & object X' for multi-segmentation")
         get_results = st.button("Submit")
