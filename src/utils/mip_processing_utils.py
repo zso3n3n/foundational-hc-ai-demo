@@ -25,28 +25,6 @@ CT_WINDOWS = {
 }
 
 
-def display_complex_image(image_path, is_CT, HW_index=(0, 1), slice_idx=None, channel_idx=None, site = None):
-    if image_path.lower().endswith(".nii.gz") or image_path.lower().endswith(".nii"):
-        image = nib.load(image_path)
-        image_array = image.get_fdata()
-        if HW_index != (0, 1):
-            image_array = np.moveaxis(image_array, HW_index, (0, 1))
-
-        # get slice
-        if channel_idx is None:
-            image_array = image_array[:, :, slice_idx]
-        else:
-            image_array = image_array[:, :, slice_idx, channel_idx]
-
-        image_array = process_intensity_image(image_array, is_CT, site)
-    elif image_path.lower().endswith(".dcm"):
-        ds = pydicom.dcmread(image_path)
-        image_array = ds.pixel_array
-    else:
-        image = Image.open(image_path)
-        image_array = np.array(image)
-    return image_array
-
 
 def process_intensity_image(image_data, is_CT, site=None):
     # process intensity-based image. If CT, apply site specific windowing
