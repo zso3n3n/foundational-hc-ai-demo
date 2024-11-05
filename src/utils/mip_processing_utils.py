@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pydicom
 import nibabel as nib
+import gzip
 import SimpleITK as sitk
 from io import BytesIO
 from PIL import Image
@@ -22,6 +23,7 @@ CT_WINDOWS = {
     "colon": [-68, 187],
     "pancreas": [-100, 200],
 }
+
 
 
 def process_intensity_image(image_data, is_CT, site=None):
@@ -84,6 +86,38 @@ def process_intensity_image(image_data, is_CT, site=None):
     return resize_image.astype(np.uint8)
 
 
+def read_dicom_bytes(dicom_bytes, is_CT, site=None):
+    """
+    Read a DICOM file from a BytesIO object and return pixel data.
+
+    Parameters:
+    dicom_bytes (BytesIO): A BytesIO object containing the DICOM file data.
+    is_CT (bool): Whether the image is a CT scan or not.
+    site (str): An optional parameter that might be used for site-specific processing.
+
+    Returns:
+    bytes: buffer containing the processed image in PNG format.
+    """
+
+    # Load DICOM data from BytesIO
+    ds = pydicom.dcmread(dicom_bytes, force=True)
+
+    # Convert DICOM pixel data to image array
+    image_array = ds.pixel_array * ds.RescaleSlope + ds.RescaleIntercept
+
+    # Process the intensity of the image based on CT or other modality
+    image_array = process_intensity_image(image_array, is_CT, site)
+
+    # Convert NumPy array to an image
+    image = Image.fromarray(image_array)
+
+    # Save the image to a BytesIO buffer
+    buffer = BytesIO()
+    image.save(buffer, format="PNG")
+    #buffer.seek(0)
+
+    return buffer.getvalue()
+
 def read_dicom(image_path, is_CT, site=None):
     # read dicom file and return pixel data
 
@@ -92,7 +126,7 @@ def read_dicom(image_path, is_CT, site=None):
     # site: str, one of CT_WINDOWS.keys()
     # return: 2D numpy array of shape (H, W)
 
-    ds = pydicom.dcmread(image_path)
+    ds = pydicom.dcmread(image_path, force=True)
     image_array = ds.pixel_array * ds.RescaleSlope + ds.RescaleIntercept
 
     image_array = process_intensity_image(image_array, is_CT, site)
@@ -105,6 +139,58 @@ def read_dicom(image_path, is_CT, site=None):
     buffer.seek(0)
 
     return buffer
+
+
+def read_nifti_bytes(nifti_io,suffix, is_CT, slice_idx, site=None, HW_index=(0, 1), channel_idx=None):
+    """
+    Read a NIfTI file from a BytesIO object and return pixel data as a bytes-like object.
+
+    Parameters:
+    nifti_bytes (BytesIO): A BytesIO object containing the NIfTI file data.
+    is_CT (bool): Whether the image is a CT scan or not.
+    slice_idx (int): Slice index to read.
+    site (str): An optional parameter that might be used for site-specific processing.
+    HW_index (tuple): Indices of the height and width in the image shape.
+    channel_idx (int): Channel index, if the image has multiple channels.
+
+    Returns:
+    bytes: A bytes-like object containing the processed image in PNG format.
+    """
+
+    # Load NIfTI data from BytesIO
+    
+    if 'gz' in suffix:
+        nifti_io.seek(0)
+        gzf = gzip.GzipFile(fileobj=nifti_io)
+        nifti_bytes = gzf.read()
+    else:
+        nifti_bytes = nifti_io.read()
+    
+    nii = nib.Nifti1Image.from_bytes(nifti_bytes)
+    image_array = nii.get_fdata()
+
+    # Rearrange axes if needed
+    if HW_index != (0, 1):
+        image_array = np.moveaxis(image_array, HW_index, (0, 1))
+
+    # Get the specified slice and channel
+    if channel_idx is None:
+        image_array = image_array[:, :, slice_idx]
+    else:
+        image_array = image_array[:, :, slice_idx, channel_idx]
+
+    # Process intensity based on CT or other modality
+    image_array = process_intensity_image(image_array, is_CT, site)
+
+    # Convert NumPy array to an image
+    image = Image.fromarray(image_array)
+
+    # Save the image to a BytesIO buffer
+    buffer = BytesIO()
+    image.save(buffer, format="PNG")
+
+    # Return the raw bytes data
+    return buffer.getvalue()
 
 
 def read_nifti(
