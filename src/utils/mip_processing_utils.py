@@ -2,11 +2,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pydicom
 import nibabel as nib
+import gzip
 import SimpleITK as sitk
 from io import BytesIO
 from PIL import Image
 from skimage import transform, measure
-from nibabel import FileHolder
 import urllib.request
 import json
 import base64
@@ -141,7 +141,7 @@ def read_dicom(image_path, is_CT, site=None):
     return buffer
 
 
-def read_nifti_bytes(nifti_bytes, is_CT, slice_idx, site=None, HW_index=(0, 1), channel_idx=None):
+def read_nifti_bytes(nifti_io,suffix, is_CT, slice_idx, site=None, HW_index=(0, 1), channel_idx=None):
     """
     Read a NIfTI file from a BytesIO object and return pixel data as a bytes-like object.
 
@@ -158,9 +158,15 @@ def read_nifti_bytes(nifti_bytes, is_CT, slice_idx, site=None, HW_index=(0, 1), 
     """
 
     # Load NIfTI data from BytesIO
-    nifti_bytes.seek(0)
-    file_map = {'header': FileHolder(fileobj=nifti_bytes), 'image': FileHolder(fileobj=nifti_bytes)}
-    nii = nib.Nifti1Image.from_file_map(file_map)
+    
+    if 'gz' in suffix:
+        nifti_io.seek(0)
+        gzf = gzip.GzipFile(fileobj=nifti_io)
+        nifti_bytes = gzf.read()
+    else:
+        nifti_bytes = nifti_io.read()
+    
+    nii = nib.Nifti1Image.from_bytes(nifti_bytes)
     image_array = nii.get_fdata()
 
     # Rearrange axes if needed

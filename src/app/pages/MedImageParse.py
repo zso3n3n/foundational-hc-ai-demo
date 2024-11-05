@@ -1,6 +1,5 @@
 import streamlit as st
 import os
-import ast
 
 from dotenv import load_dotenv,find_dotenv
 from tempfile import NamedTemporaryFile
@@ -11,7 +10,6 @@ load_dotenv(find_dotenv(), override = True)
 
 # Initialize variables
 uploaded_image = None
-temp_file = None
 st.session_state.results = {}
 st.session_state.results['status'] = False
 st.session_state.temp_path = None
@@ -27,26 +25,38 @@ def save_temp_file(uploaded_image):
     if suffix == 'gz':
         suffix = uploaded_image.name.split('.')[-2] + '.gz'
 
-    with NamedTemporaryFile(delete=False, suffix = f".{suffix}") as temp_file:
+    with NamedTemporaryFile(delete=False, suffix = f".png") as temp_file:
         if suffix == 'dcm':
             site = None
             ct = st.radio("Is this a CT scan? (Required)", options=["Yes", "No"], index=1)
-            if ct == "Yes":
-                site = st.selectbox("Select the site of the CT scan (Required)", options=["Abdomen","Lung","Pelvis","Liver","Colon","Pancreas"]).lower()
-            temp_file.write(mip_utils.read_dicom_bytes(uploaded_image, ct=="Yes", site))
-            st.session_state.temp_path = temp_file.name
+            site = st.selectbox("Select the site of the CT scan (Required)", options=["None","Abdomen","Lung","Pelvis","Liver","Colon","Pancreas"], disabled= ct=="No", index=0).lower()
+            
+            if ct == "Yes" and site == None:
+                st.warning("Please select a site for the CT scan.")
+            else:
+                temp_file.write(mip_utils.read_dicom_bytes(uploaded_image, ct=="Yes", site))
+                st.session_state.temp_path = temp_file.name
 
         elif suffix in ['nii','nii.gz']:
             site = None
-            is_ct = st.radio("Is this a CT scan? (Required)", options=["Yes", "No"], index=1)
-            if is_ct == "Yes":
-                site = st.selectbox("Select the site of the CT scan (Required)", options=["Abdomen","Lung","Pelvis","Liver","Colon","Pancreas"]).lower()
-            # FIXME: 
-            HW_index = ast.literal_eval(st.text_input("Enter the HW Index (Required)", value=(0,1)))
-            slice_idx = st.text_input("Enter the slice index (Required)", value="None")
-            channel_idx = st.text_input("Enter the channel index (Required)", value="None") 
-            temp_file.write(mip_utils.read_nifti_bytes(uploaded_image, is_ct, slice_idx, site, HW_index, channel_idx))
-            st.session_state.temp_path = temp_file.name
+            ct = st.radio("Is this a CT scan? (Required)", options=["Yes", "No"], index=1)
+            if ct == "Yes":
+                site = st.selectbox("Select the site of the CT scan (Required)", options=["Abdomen","Lung","Pelvis","Liver","Colon","Pancreas"], index=None).lower()
+            
+            st.write("HW Index:")
+            height = st.number_input("Enter the height (Required)", value=0, format="%d", step=1)
+            width = st.number_input("Enter the width (Required)", value=1, format="%d", step=1)
+            HW_index = (height, width)
+
+            slice_idx = st.number_input("Enter the slice index (Required)", value=None, format="%d", step=1)
+            channel_idx = st.number_input("Enter the channel index (Required)", value=None, format="%d", step=1)
+            
+            if None in [height, width, slice_idx, channel_idx]:
+                st.warning("Please fill in all required fields.")
+            else:
+                temp_file.write(mip_utils.read_nifti_bytes(uploaded_image,suffix,ct=="Yes",slice_idx,site,HW_index,channel_idx))
+                st.session_state.temp_path = temp_file.name
+
         else:
             temp_file.write(uploaded_image.getbuffer())
             st.session_state.temp_path = temp_file.name
@@ -97,22 +107,22 @@ with tab1:
 
     st.container()
     st.markdown('---\n')
-    st.markdown("#### Supported Modalities")
+    st.markdown("##### _Supported Modalities_")
     col1, col2 = st.columns(2)
     with col1:
         st.markdown("""
-                    - X-Ray
-                    - MRI
-                    - CT
-                    - Endoscope
+                    - _X-Ray_
+                    - _MRI_
+                    - _CT_
+                    - _Endoscope_
                    
                     """)
     with col2:
         st.markdown("""
-                    - Pathology
-                    - Ultrasound
-                    - Fundus
-                    - Dermoscopy
+                    - _Pathology_
+                    - _Ultrasound_
+                    - _Fundus_
+                    - _Dermoscopy_
                     """)
 
     if st.session_state.results['status']:
