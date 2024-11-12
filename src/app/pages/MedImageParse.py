@@ -29,9 +29,11 @@ def save_temp_file(uploaded_image):
         if suffix == 'dcm':
             site = None
             ct = st.radio("Is this a CT scan? (Required)", options=["Yes", "No"], index=1)
-            site = st.selectbox("Select the site of the CT scan (Required)", options=["None","Abdomen","Lung","Pelvis","Liver","Colon","Pancreas"], disabled= ct=="No", index=0).lower()
 
-            if ct == "Yes" and site == None:
+            if ct == "Yes":
+                site = st.selectbox("Select the site of the CT scan (Required)", options=["None","Abdomen","Lung","Pelvis","Liver","Colon","Pancreas"], disabled= ct=="No", index=0).lower()
+
+            if ct == "Yes" and site == 'none':
                 st.warning("Please select a site for the CT scan.")
             else:
                 temp_file.write(mip_utils.read_dicom_bytes(uploaded_image, ct=="Yes", site))
