@@ -1,8 +1,5 @@
 .env
 
-# sample data folder
-sample_images/
-
 # pycache
 */__pycache__/
 
