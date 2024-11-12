@@ -30,7 +30,7 @@ def save_temp_file(uploaded_image):
             site = None
             ct = st.radio("Is this a CT scan? (Required)", options=["Yes", "No"], index=1)
             site = st.selectbox("Select the site of the CT scan (Required)", options=["None","Abdomen","Lung","Pelvis","Liver","Colon","Pancreas"], disabled= ct=="No", index=0).lower()
-            
+
             if ct == "Yes" and site == None:
                 st.warning("Please select a site for the CT scan.")
             else:
