@@ -27,7 +27,7 @@ A biomedical foundation model for imaging parsing that can jointly conduct segme
 This model is built to help an application interpret complex medical imaging studies of chest X-rays. When built upon and integrated into an application, CXRReportGen may help developers generate comprehensive and structured radiology reports, with visual grounding represented by bounding boxes on the images.   
 [Read More Here](https://arxiv.org/abs/2406.04449)
 
-### **Paige.ai PRISM**: (_Coming Soon_)  
+### **Paige.ai PRISM & Virchow**: (_Coming Soon_)  
 A multi-modal generative foundation model for slide-level analysis of H&E-stained histopathology images. Utilizing Virchow tile embeddings and clinical report texts for pre-training, PRISM combines these embeddings into a single slide embedding and generates a text-based diagnostic report. These can be used for tasks such as cancer detection, sub-typing, and biomarker identification.   
 [Read More Here](https://paige.ai/paige-introduces-prism-a-slide-level-foundation-model-to-empower-the-next-era-of-pathology-cancer-treatment/)
 
