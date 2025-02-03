@@ -29,10 +29,9 @@ def save_temp_file(uploaded_image):
         if suffix == 'dcm':
             site = None
             ct = st.radio("Is this a CT scan? (Required)", options=["Yes", "No"], index=1)
-
             if ct == "Yes":
                 site = st.selectbox("Select the site of the CT scan (Required)", options=["None","Abdomen","Lung","Pelvis","Liver","Colon","Pancreas"], disabled= ct=="No", index=0).lower()
-
+                
             if ct == "Yes" and site == 'none':
                 st.warning("Please select a site for the CT scan.")
             else:
@@ -41,6 +40,7 @@ def save_temp_file(uploaded_image):
 
         elif suffix in ['nii','nii.gz']:
             site = None
+            channel_idx = None
             ct = st.radio("Is this a CT scan? (Required)", options=["Yes", "No"], index=1)
             if ct == "Yes":
                 site = st.selectbox("Select the site of the CT scan (Required)", options=["Abdomen","Lung","Pelvis","Liver","Colon","Pancreas"], index=None).lower()
@@ -51,12 +51,12 @@ def save_temp_file(uploaded_image):
             HW_index = (height, width)
 
             slice_idx = st.number_input("Enter the slice index (Required)", value=None, format="%d", step=1)
-            channel_idx = st.number_input("Enter the channel index (Required)", value=None, format="%d", step=1)
+            channel_idx = st.number_input("Enter the channel index (Optional)", value=None, format="%d", step=1)
             
-            if None in [height, width, slice_idx, channel_idx]:
+            if None in [height, width, slice_idx]:
                 st.warning("Please fill in all required fields.")
             else:
-                temp_file.write(mip_utils.read_nifti_bytes(uploaded_image,suffix,ct=="Yes",slice_idx,site,HW_index,channel_idx))
+                temp_file.write(mip_utils.read_nifti_bytes(uploaded_image,suffix,ct=='Yes',slice_idx,HW_index,site,channel_idx))
                 st.session_state.temp_path = temp_file.name
 
         else:

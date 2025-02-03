@@ -78,12 +78,11 @@ def process_intensity_image(image_data, is_CT, site=None):
         mode="constant",
         preserve_range=True,
         anti_aliasing=True,
-    )
+    ).astype(np.uint8)
 
-    # convert to 3-channel image
-    resize_image = np.stack([resize_image] * 3, axis=-1)
+    final_image = np.stack([resize_image] * 3, axis=-1)
 
-    return resize_image.astype(np.uint8)
+    return final_image
 
 
 def read_dicom_bytes(dicom_bytes, is_CT, site=None):
@@ -141,7 +140,7 @@ def read_dicom(image_path, is_CT, site=None):
     return buffer
 
 
-def read_nifti_bytes(nifti_io,suffix, is_CT, slice_idx, site=None, HW_index=(0, 1), channel_idx=None):
+def read_nifti_bytes(nifti_io,suffix, is_CT, slice_idx, HW_index=(0, 1),site=None, channel_idx=None):
     """
     Read a NIfTI file from a BytesIO object and return pixel data as a bytes-like object.
 
@@ -181,7 +180,8 @@ def read_nifti_bytes(nifti_io,suffix, is_CT, slice_idx, site=None, HW_index=(0, 
 
     # Process intensity based on CT or other modality
     image_array = process_intensity_image(image_array, is_CT, site)
-
+    image_array = np.squeeze(image_array)
+    
     # Convert NumPy array to an image
     image = Image.fromarray(image_array)
 
